@@ -107,6 +107,7 @@ export default function App() {
   const [aiStep, setAiStep] = useState(0);
   const [aiProgress, setAiProgress] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [copyButtonText, setCopyButtonText] = useState('COPIAR');
 
   // Config Chat State
   const [configInput, setConfigInput] = useState('');
@@ -197,14 +198,37 @@ export default function App() {
     }
   };
 
-  const generateRandomSettings = () => {
+  const handleCopySettings = () => {
+    if (!generatedSettings) return;
+    const text = `Sensibilidad Power Xit:
+General: ${generatedSettings.general}
+Punto Rojo: ${generatedSettings.puntoRojo}
+Mira 2x: ${generatedSettings.mira2x}
+Mira 4x: ${generatedSettings.mira4x}
+Francotirador: ${generatedSettings.francotirador}
+DPI: ${generatedSettings.dpi}
+Botón Disparo: ${generatedSettings.botonDisparo}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setCopyButtonText('¡COPIADO!');
+      setTimeout(() => setCopyButtonText('COPIAR'), 2000);
+    });
+  };
+
+  const generateRandomSettings = (deviceType: 'android' | 'ios' | null) => {
+    let dpi;
+    if (deviceType === 'ios') {
+      dpi = Math.floor(Math.random() * (450 - 72 + 1)) + 72;
+    } else {
+      dpi = Math.floor(Math.random() * 400) + 400;
+    }
     return {
       general: Math.floor(Math.random() * 100) + 100,
       puntoRojo: Math.floor(Math.random() * 100) + 100,
       mira2x: Math.floor(Math.random() * 100) + 100,
       mira4x: Math.floor(Math.random() * 100) + 100,
       francotirador: Math.floor(Math.random() * 100) + 100,
-      dpi: Math.floor(Math.random() * 400) + 400,
+      dpi: dpi,
       botonDisparo: Math.floor(Math.random() * 20) + 30,
     };
   };
@@ -217,7 +241,7 @@ export default function App() {
       setAiProgress(progress);
       if (progress >= 100) {
         clearInterval(interval);
-        setGeneratedSettings(generateRandomSettings());
+        setGeneratedSettings(generateRandomSettings(device));
         setIsGenerating(false);
         setStep(2);
       }
@@ -349,8 +373,8 @@ export default function App() {
                 </Card>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="secondary" className="w-full" onClick={() => {}}>
-                    <Copy size={18} /> COPIAR
+                  <Button variant="secondary" className="w-full" onClick={handleCopySettings}>
+                    <Copy size={18} /> {copyButtonText}
                   </Button>
                   <Button className="w-full" onClick={() => setStep(0)}>
                     <RefreshCw size={18} /> NUEVA
@@ -473,7 +497,7 @@ export default function App() {
                     </div>
                     <h3 className="text-2xl font-black text-white">¡IA LISTA!</h3>
                     <p className="text-zinc-400">Hemos analizado tu perfil de juego y hardware ({model || 'Genérico'}).</p>
-                    <Button onClick={() => { setAiStep(0); setActiveTab('inicio'); setStep(2); setGeneratedSettings(generateRandomSettings()); }} className="w-full">VER RESULTADOS</Button>
+                    <Button onClick={() => { setAiStep(0); setActiveTab('inicio'); setStep(2); setGeneratedSettings(generateRandomSettings(device)); }} className="w-full">VER RESULTADOS</Button>
                   </div>
                 )}
               </motion.div>
